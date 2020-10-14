@@ -7,7 +7,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.reg = [0] * 8
+        self.reg = [0, 0, 0, 0, 0, 0, 0, []]
         self.pc = 0
         self.ram = [0] * 256
         self.var = input("Do you have your own program? ")
@@ -118,6 +118,17 @@ class CPU:
                 product = val_1 * val_2
                 self.reg[reg_1] = product
                 IR += 3
+
+            elif instruction == 0b01000101: # PUSH
+                reg_1 = self.ram[IR+1]
+                val_1 = self.reg[reg_1]
+                self.reg[7].append(val_1)
+                IR += 2
+            
+            elif instruction == 0b01000110: # POP
+                reg_1 = self.ram[IR+1]
+                self.reg[reg_1] = self.reg[7].pop()
+                IR += 2
 
             elif instruction == 0b00000001: # HLT
                 halted = True
