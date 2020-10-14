@@ -10,28 +10,52 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.ram = [0] * 256
+        self.var = input("Do you have your own program? ")
+        if self.var.lower() == "yes":
+            self.var = input("What program would you like to run? ")
+        else:
+            self.var = "no"
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
 
-        # For now, we've just hardcoded a program:
+        if self.var == "no":
+            program = [
+                # From print8.ls8
+                0b10000010, # LDI R0,8
+                0b00000000,
+                0b00001000,
+                0b01000111, # PRN R0
+                0b00000000,
+                0b00000001, # HLT
+            ]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        else:
+            program = []
+            try:
+                with open(f'ls8/examples/{self.var}') as f:
+                    for line in f:
+                        line = line.strip()
+
+                        if line == '' or line [0]=="#":
+                            continue
+                            
+                        try:
+                            str_value = line.split("#")[0]
+                            value = int(str_value, 2)
+                            program.append(value)
+
+                        except ValueError:
+                            print(f"Invalid number: {str_value}")
+            
+            except FileNotFoundError:
+                print(f"File not found: {self.var}")
 
         for instruction in program:
             self.ram[address] = instruction
-            address += 1
-
+            address += 1    
+    
     def ram_read(self, address):
         return self.ram[address]
 
@@ -86,6 +110,19 @@ class CPU:
                 print(self.reg[reg_num])
                 IR += 2
 
+            elif instruction == 0b10100010:
+                reg_1 = self.ram[IR+1]
+                reg_2 = self.ram[IR+2]
+                val_1 = self.reg[reg_1]
+                val_2 = self.reg[reg_2]
+                product = val_1 * val_2
+                self.reg[reg_1] = product
+                IR += 3
+
             elif instruction == 0b00000001: # HLT
                 halted = True
                 IR += 1
+            
+            else:
+                print(f"unknown instruction {instruction} at address {IR}")
+                sys.exit(1)
